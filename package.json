@@ -1,0 +1,17 @@
+{
+  "name": "juuk",
+  "version": "0.0.0",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "serve": "vite preview"
+  },
+  "devDependencies": {
+    "vite": "^2.5.4"
+  },
+  "dependencies": {
+    "firebase": "^9.0.1",
+    "webrtc": "^1.14.1",
+    "ws": "^8.2.2"
+  }
+}
