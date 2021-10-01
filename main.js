@@ -42,7 +42,7 @@ const servers = {
 const WS_PORT = 8443;
 
 // Global State
-//const pc = new RTCPeerConnection(servers);
+
 let localStream;
 let localuuid;
 let localusername;
@@ -55,12 +55,11 @@ const webcamVideo = document.getElementById('webcamVideo');
 const callButton = document.getElementById('callButton');
 const callInput = document.getElementById('callInput');
 const answerButton = document.getElementById('answerButton');
-//const remoteVideo = document.getElementById('remoteVideo');
+
 const hangupButton = document.getElementById('hangupButton');
 const usernameInput = document.getElementById("username-input")
 
-let iceuuid;
-//let username;
+
 let uuid;
 
 // 1. Setup media sources
@@ -72,21 +71,10 @@ webcamButton.onclick = async () => {
     audio: false,
   };
   localStream = await navigator.mediaDevices.getUserMedia(constraints);
-  //remoteStream = new MediaStream();
-
-  // Push tracks from local stream to peer connection
-  /*localStream.getTracks().forEach((track) => {
-    pc.addTrack(track, localStream);
-  });
-
-    // Pull tracks from remote stream, add to video stream
-*/
+ 
   webcamVideo.srcObject = localStream;
 
 
-  //localuuid = createUUID()
-  //ocalusername = usernameInput.value;
-  //remoteVideo.srcObject = remoteStream;
 
   callButton.disabled = false;
   answerButton.disabled = false;
@@ -97,7 +85,9 @@ webcamButton.onclick = async () => {
 };
 
 
+//to do in case we will use websocket 
 
+/*
 function useWebsocket() {
 
   let serverConnection = new WebSocket('ws://' + location.hostname + ':' + WS_PORT);
@@ -126,104 +116,24 @@ async function onMessage(message) {
 
 
 
-}
+}*/
 
 
-// 2. Create an offer
+
 callButton.addEventListener('click', async (event) => {
 
-  //const peers = collection(callDoc,'peerconnections')
 
-  // Reference Firestore collections for signaling
-
-  //const offerCandidates = collection(callDoc, 'offerCandidates');
-  //const answerCandidates = collection(callDoc, 'answerCandidates');
-  //signals = collection(callDoc,'signals')
-  //event.preventDefault()
   localuuid = createUUID()
   localusername = usernameInput.value;
   const col = collection(Firestore, 'calls')
   var callDoc = doc(col)
   callInput.value = callDoc.id;
   joinCall(callDoc, localuuid, localusername, true)
-  /*setUpPeer(uuid,username)
-
-  peerConnections[uuid].pc.onicecandidate = async (event) => {
-    console.log(event)
-    if (event.candidate) {
-      await addDoc(offerCandidates, event.candidate.toJSON())
-    }
-
-
-  };
-  // Create offer
-  const offerDescription = await peerConnections[uuid].pc.createOffer();
-  await peerConnections[uuid].pc.setLocalDescription(offerDescription);
-
-  const offer = {
-    sdp: offerDescription.sdp,
-    type: offerDescription.type,
-    uuid: localuuid,
-    username: localusername
-  };
-
-  await setDoc(callDoc, { offer });
-
-
-
-  // Listen for remote answer
-
-  onSnapshot(callDoc, async (snapshot) => {
-    const data = snapshot.data();
-    
-    if (data?.answer) {
-      const answerDescription = new RTCSessionDescription(data.answer);
-      //uuid = data.answer.uuid
-      //setUpPeer(uuid)
-      peerConnections[uuid].pc.onicecandidate = async (event) => {
-        console.log(event)
-        if (event.candidate) {
-          await addDoc(offerCandidates, event.candidate.toJSON())
-        }
-    
-    
-      };
-      //const offerDescription1 = await peerConnections[uuid].pc.createOffer();
-      //await peerConnections[uuid].pc.setLocalDescription(offerDescription1);
-      console.log(uuid)
-      console.log(peerConnections)
-      await peerConnections[uuid].pc.setRemoteDescription(answerDescription);
-      //await peerConnections[uuid].pc.setRemoteDescription(answerDescription);
-      console.log(peerConnections[uuid].pc)
-
-    }
-    else {
-      //const answerDescription = await peerConnections[peerUuid].pc.createAnswer();
-
-      console.log("gata", data)
-
-    }
-  });
-  // When answered, add candidate to peer connection
-  onSnapshot(answerCandidates, (snapshot) => {
-    snapshot.docChanges().forEach(async (change) => {
-      console.log(change.type)
-      if (change.type === 'added') {
-        let answer_data = change.doc.data()
-        const candidate = new RTCIceCandidate(answer_data);
-        
-        console.log("hi", candidate)
-        console.log(uuid)
-        await peerConnections[uuid].pc.addIceCandidate(candidate);
-        //await peerConnections[uuid].pc.addIceCandidate(candidate);
-      }
-    });
-  });*/
-
-
+ 
 
 
   hangupButton.disabled = false;
+  answerButton.disabled = true
   hangupButton.addEventListener('click', (event) => hangUp(event, callDoc))
   onSnapshot(callDoc, (snapshot) => handleDocChange(snapshot, callDoc), (error) => errorHandler(error))
 });
@@ -231,7 +141,7 @@ callButton.addEventListener('click', async (event) => {
 // 3. Answer the call with the unique ID
 answerButton.addEventListener('click', async (event) => {
 
-  //event.preventDefault()
+
   localuuid = createUUID()
   localusername = usernameInput.value;
   const callId = callInput.value;
@@ -239,79 +149,13 @@ answerButton.addEventListener('click', async (event) => {
   var callDoc = doc(col, callId);
   joinCall(callDoc, localuuid, localusername)
   hangupButton.disabled = false;
+  answerButton.disabled = true
   hangupButton.addEventListener('click', (event) => hangUp(event, callDoc))
 
   onSnapshot(callDoc, (snapshot) => handleDocChange(snapshot, callDoc), (error) => errorHandler(error))
-  /*
-    const answerCandidates = collection(callDoc, 'answerCandidates');
   
-    const offerCandidates = collection(callDoc, 'offerCandidates');
-  
-  
-  
-    //const answerCandidates = collection(callDoc, 'answerCandidates');
-  
-    //const offerCandidates = collection(callDoc, 'offerCandidates');
-  
-  
-    const callref = await getDoc(callDoc)
-    console.log(callref)
-    const callData = callref.data();
-    console.log(callData)
-    const offerDescription = callData.offer;
-  
-    async function createAnswer(uuid,username){
-  
-      setUpPeer(uuid,username)
-      peerConnections[uuid].pc.onicecandidate = async (event) => {
-        if (event.candidate) {
-          await addDoc(answerCandidates, event.candidate.toJSON())
-        }
-      }
-  
-    await peerConnections[uuid].pc.setRemoteDescription(new RTCSessionDescription(offerDescription));
-  
-    const answerDescription = await peerConnections[uuid].pc.createAnswer();
-    await peerConnections[uuid].pc.setLocalDescription(answerDescription);
-  
-    const answer = {
-      type: answerDescription.type,
-      sdp: answerDescription.sdp,
-      uuid: localuuid,
-      username:username
-    };
-  
-    await updateDoc(callDoc, { answer });
-  
-    }
-    createAnswer(callData.offer.uuid,callData.offer.username)
-    //await peerConnections[callData.offer.uuid].pc.addIceCandidate(new RTCIceCandidate(data))
-    //createAnswer(localuuid)
-  
-    onSnapshot(offerCandidates, (snapshot) => {
-      console.log("snapshot")
-      snapshot.docChanges().forEach(async (change) => {
-      console.log(change.type)
-        if (change.type === 'added') {
-          let data = change.doc.data();
-          console.log(data)
-          if (data?.offer){
-            
-            uuid = data.offer.uuid
-            console.log(uuid)
-            
-            await peerConnections[uuid].pc.addIceCandidate(new RTCIceCandidate(data));
-            console.log("offer", data)
-          }
-  
-          //setUpPeer(uuid)
-  
-        }
-      });
-    });*/
-
-
-
+ 
+ 
 
 
 });
@@ -329,6 +173,7 @@ async function hangUp(event, callDoc) {
     uuid: localuuid
   }
   await updateDoc(callDoc, { signal })
+  
   webcamButton.disabled = false
   hangupButton.disabled = true
 }
@@ -408,18 +253,14 @@ async function handleDocChange(snapshot, callDoc) {
       }
     } else if (datasignal.ice) {
           
-          //processIce(event,peerUuid,callDoc)
-          //console.log('ice')
+      
           var signalice = JSON.parse(datasignal.ice)
     
           console.log(signalice)
     
           var candidate = new RTCIceCandidate(signalice);
     
-          //console.log("candidate", candidate.candidate)
-          //console.log(candidate.candidate)
-          //console.log(peerConnections[uuid].pc.remoteDescription)
-
+         
             console.log(peerConnections[uuid].pc.iceConnectionState)
             if (candidate && peerConnections[uuid].pc) {
               console.log("peer",peerConnections[uuid].pc)
@@ -444,7 +285,7 @@ async function handleDocChange(snapshot, callDoc) {
 }
 
 async function createdDescription(description, peerUuid, callDoc) {
-  //const callDoc = doc(calls, callid);
+  
   console.log(`got description, peer ${peerUuid}`);
   peerConnections[peerUuid].pc.setLocalDescription(description).then(async function () {
 
@@ -568,7 +409,7 @@ async function processIce(event, peerUuid, callDoc){
     destination: peerUuid
   }
   
-  //console.log(signal)
+  //wait until candidate is ready
   await timeout(3000)
   updateDoc(callDoc, { signal }).then(() => console.log("added on ice success"))
 }
@@ -580,6 +421,7 @@ async function gotIceCandidate(event, peerUuid, callDoc) {
     
   } 
 }
+// stop the remote video
 async function stop(event, uuid) {
   
   const index = AddedPeers.indexOf(uuid);
